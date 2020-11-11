@@ -1,0 +1,24 @@
+{
+  "development": {
+    "username": "postgres",
+    "password": "nothinglasts123",
+    "database": "ecommerce_server_database",
+    "host": "localhost",
+    "dialect": "postgres"
+  },
+  "test": {
+    "username": "postgres",
+    "password": "nothinglasts123",
+    "database": "ecommerce_server_database_test",
+    "host": "localhost",
+    "dialect": "postgres"
+  },
+  "production": {
+    "username": "root",
+    "password": null,
+    "database": "database_production",
+    "host": "127.0.0.1",
+    "dialect": "mysql"
+  }
+}
+

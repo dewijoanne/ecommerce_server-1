@@ -1,0 +1,36 @@
+{
+  "name": "ecommerce_server-1",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon bin/http.js",
+    "start": "node app.js",
+    "test": "jest --forceExit --runInBand --verbose --detectOpenHandles --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dewijoanne/ecommerce_server-1.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dewijoanne/ecommerce_server-1/issues"
+  },
+  "homepage": "https://github.com/dewijoanne/ecommerce_server-1#readme",
+  "dependencies": {
+    "bcrypt": "^5.0.0",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "jsonwebtoken": "^8.5.1",
+    "pg": "^8.5.0",
+    "sequelize": "^6.3.5",
+    "supertest": "^6.0.1"
+  },
+  "devDependencies": {
+    "dotenv": "^8.2.0",
+    "jest": "^26.6.3",
+    "sequelize-cli": "^6.2.0"
+  }
+}
