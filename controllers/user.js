@@ -30,9 +30,9 @@ class UserController {
     })
     .then((user) => {
       if(user) {
-        const payload= comparePassword(password, user.password)
-        if(payload) {
-          const token = createToken(user.id)
+        const pwd= comparePassword(password, user.password)
+        if(pwd) {
+          const token = generateToken(user.id)
           res.status(200).json({
             user, token
           })
