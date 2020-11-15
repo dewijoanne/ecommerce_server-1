@@ -57,7 +57,6 @@ describe("User Routes", () => {
                 const { body, status } = response
 
                 expect(status).toBe(200)
-                // expect(body).toHaveProperty("message","success login")
                 expect(body).toHaveProperty("access_token")
                 done()
             })

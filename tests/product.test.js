@@ -21,60 +21,13 @@ let manager_token = ""
 let wrong_token = ""
 
 let product1 = {
-    name : "Jelly Drink",
-    image_url : "www.jellydrink.com",
-    price : 10000,
-    stock : 50,
+    name: 'PS5',
+    image_url:
+      'https://www.citypng.com/public/uploads/preview/-11591925787cggjhepdvq.png',
+    price: 2000000,
+    stock: 10,
 }
 
-let product2 = {
-    name : "Tamiya Sonic Sabre",
-    image_url : "www.sonicTamiya.com",
-    price : "0",
-    stock : "0",
-}
-
-let product3 = {
-    name : "Tamiya Sonic Sabre",
-    image_url : "www.sonicTamiya.com",
-    price : -1,
-    stock : -1,
-}
-
-let product4 = {
-    name : "",
-    image_url : "www.sonicTamiya.com",
-    price : 10000,
-    stock : 50,
-}
-
-let product5 = {
-    name : "Tamiya Sonic Sabre",
-    image_url : "",
-    price : 10000,
-    stock : 50,
-}
-
-let product6 = {
-    name : "Tamiya Sonic Sabre",
-    image_url : "www.sonicTamiya.com",
-    price : "",
-    stock : 50,
-}
-
-let product7 = {
-    name : "Tamiya Sonic Sabre",
-    image_url : "www.sonicTamiya.com",
-    price : 10000,
-    stock : "",
-}
-
-let product1update = {
-    name : "Jelly Drink (Update)",
-    image_url : "www.jellydrink.com",
-    price : 10000,
-    stock : 50,
-}
 
 let resultProduct = ""
 
@@ -83,7 +36,6 @@ beforeAll( done =>{
     
     User.create(user1)
     .then( adminData => {
-        // console.log(adminData.dataValues,"adminDataadminData")
         access_token = jwtSign({
             id : adminData.dataValues.id,
             email: adminData.dataValues.email
@@ -95,10 +47,8 @@ beforeAll( done =>{
             id : notAdminData.dataValues.id,
             email: notAdminData.dataValues.email
         })
-        // console.log(access_token,"123access_tokenaccess_token")
         done()
     })
-    // console.log(access_token,"access_tokenaccess_token")
     .catch( err => {
         done(err)
     })
@@ -196,8 +146,6 @@ describe("Product Routes", () => {
                     const { body, status } = response
                     
                     resultProduct = body
-                    // console.log(resultProduct,"resultProductresultProduct")
-                    // console.log(access_token, "access_tokenaccess_token")
                     expect(status).toBe(201)
                     expect(body).toHaveProperty("id")
                     expect(body).toHaveProperty("name")
@@ -220,7 +168,6 @@ describe("Product Routes", () => {
                 .set("Accept", "application/json")
                 .set('access_token', access_token)
                 .then( response => {
-                    // console.log(response,"response")
                     const { body, status } = response
     
                     expect(status).toBe(400)
@@ -239,11 +186,9 @@ describe("Product Routes", () => {
                 .set("Accept", "application/json")
                 .set('access_token', access_token)
                 .then( response => {
-                    // console.log(response,"response")
                     const { body, status } = response
     
                     expect(status).toBe(400)
-                    // expect(body).toHaveProperty("message","success login")
                     expect(body).toHaveProperty("message","Price and Stock must be more then 0")
                     done()
                 })
@@ -259,11 +204,9 @@ describe("Product Routes", () => {
                 .set("Accept", "application/json")
                 .set('access_token', access_token)
                 .then( response => {
-                    // console.log(response,"response")
                     const { body, status } = response
     
                     expect(status).toBe(400)
-                    // expect(body).toHaveProperty("message","success login")
                     expect(body).toHaveProperty("message","name cannot be empty")
                     done()
                 })
@@ -279,11 +222,9 @@ describe("Product Routes", () => {
                 .set("Accept", "application/json")
                 .set('access_token', access_token)
                 .then( response => {
-                    // console.log(response,"response")
                     const { body, status } = response
     
                     expect(status).toBe(400)
-                    // expect(body).toHaveProperty("message","success login")
                     expect(body).toHaveProperty("message","image_url cannot be empty")
                     done()
                 })
@@ -299,11 +240,9 @@ describe("Product Routes", () => {
                 .set("Accept", "application/json")
                 .set('access_token', access_token)
                 .then( response => {
-                    // console.log(response,"response")
                     const { body, status } = response
     
                     expect(status).toBe(400)
-                    // expect(body).toHaveProperty("message","success login")
                     expect(body).toHaveProperty("message","price cannot be empty")
                     done()
                 })
@@ -319,11 +258,9 @@ describe("Product Routes", () => {
                 .set("Accept", "application/json")
                 .set('access_token', access_token)
                 .then( response => {
-                    // console.log(response,"response")
                     const { body, status } = response
     
                     expect(status).toBe(400)
-                    // expect(body).toHaveProperty("message","success login")
                     expect(body).toHaveProperty("message","stock cannot be empty")
                     done()
                 })
@@ -389,28 +326,15 @@ describe("Product Routes", () => {
             let getAll = []
             Product.findAll()
             .then( data => { 
-                // console.log(data.dataValues,"datadata")
                 getAll = data
             })
 
-
-            // describe('GET /user', function() {
-            //     it('responds with json', function(done) {
-            //       request(app)
-            //         .get('/user')
-            //         .set('Accept', 'application/json')
-            //         .expect('Content-Type', /json/)
-            //         .expect(200, done);
-            //     });
-            //   });
-            // console.log(access_token,"ini access_token")
     
             return request(app)
                 .get('/products')
                 .set("Accept", "application/json")
                 .set('access_token', access_token)
                 .then( response => {
-                    // console.log(response, "responseresponse")
                     const { body, status } = response
                     
                     expect(status).toBe(200)
@@ -649,7 +573,6 @@ describe("Product Routes", () => {
                 .set("Accept", "application/json")
                 .set('access_token', access_token)
                 .then( response => {
-                    // console.log(response,"responseresponse")
                     const { body, status } = response
     
                     expect(status).toBe(404)
