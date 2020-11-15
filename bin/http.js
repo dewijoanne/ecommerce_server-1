@@ -1,11 +1,6 @@
-const http = require('http')
-const app = require('../app')
-const PORT = process.env.PORT || 3092
+const app = require("../app");
+const port = process.env.PORT || 3070;
 
-app.set('PORT', PORT)
-
-const server = http.createServer(app)
-
-server.listen(PORT, function() {
-  console.log(`App is listening on port ${PORT}`)
-})
+app.listen(port, () => {
+  console.log(`E-commerce app is at PORT ${port}`);
+});

@@ -2,14 +2,14 @@
   "development": {
     "username": "postgres",
     "password": "nothinglasts123",
-    "database": "ecommerce_server_database",
+    "database": "ecommerce_server",
     "host": "localhost",
     "dialect": "postgres"
   },
   "test": {
     "username": "postgres",
     "password": "nothinglasts123",
-    "database": "ecommerce_server_database_test",
+    "database": "ecommerceserver_database_test",
     "host": "localhost",
     "dialect": "postgres"
   },

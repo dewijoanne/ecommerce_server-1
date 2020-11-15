@@ -1,93 +1,41 @@
 'use strict';
-const { hashPassword } = require("../helpers/bcrypt")
-module.exports = (sequelize, DataTypes) => {
-  const Model = sequelize.Sequelize.Model
-  class User extends Model { }
 
+const {encrypt} = require('../helpers/bcrypt') 
+const {
+  Model
+} = require('sequelize');
+module.exports = (sequelize, DataTypes) => {
+  class User extends Model {
+    /**
+     * Helper method for defining associations.
+     * This method is not a part of Sequelize lifecycle.
+     * The `models/index` file will call this method automatically.
+     */
+    static associate(models) {
+      // define association here
+    }
+  };
   User.init({
-    username: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      validate: {
-        notEmpty: {
-          args: true,
-          msg: "Oops! Enter username here!"
-        },
-        notNull: {
-          msg: "Oops! Enter username here!"
-        },
-        isUnique(value) {
-          return User.findOne({
-            where: {
-              username: value
-            }
-          })
-            .then((result) => {
-              if (result) {
-                throw new Error("Yikes! Username already exists!")
-              }
-            })
-        }
-      }
-    },
     email: {
-      type: DataTypes.STRING,
       allowNull: false,
-      validate: {
-        notEmpty: {
-          args: true,
-          msg: "Oops! Enter email here!"
-        },
-        notNull: {
-          msg: "Oops! Enter email here!"
-        },
-        isEmail: {
-          args: true,
-          msg: "Oops! Invalid email format!"
-        },
-        isUnique(value) {
-          return User.findOne({
-            where: {
-              email: value
-            }
-          })
-            .then((result) => {
-              if (result) {
-                throw new Error("Yikes! Email address already exists!")
-              }
-            })
-        }
-      }
+      type: DataTypes.STRING,
     },
     password: {
-      type: DataTypes.STRING,
       allowNull: false,
-      validate: {
-        notEmpty: {
-          args: true,
-          msg: "Oops! Enter password here!"
-        },
-        len: {
-          args: [6, 999999],
-          msg: "Yikes! Minimum 6 characters!"
-        },
-        notNull: {
-          msg: "Oops! Enter password here!"
-        }
-      }
+      type: DataTypes.STRING,
     },
-    role: { type: DataTypes.STRING }
+    role: {
+      allowNull: false,
+      type: DataTypes.STRING,
+    },
   }, {
-    hooks: {
-      beforeCreate: (user) => {
-        user.password = hashPassword(user.password)
+    hooks : {
+      beforeSave (user){
+        user.password = encrypt(user.password)
       }
     },
-    sequelize
+    sequelize,
+    modelName: 'User',
   });
-  User.associate = function (models) {
-    // associations can be defined here
-    User.hasMany(models.Product)
-  };
   return User;
 };
