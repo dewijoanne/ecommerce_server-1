@@ -12,7 +12,7 @@ It has:
     - Bcrypt
 * JSON Formated Response
 * Documentation: https://documenter.getpostman.com/view/5729395/TVes7SC7
-* Deploy link: https://ecommerce-chocochenka.web.app
+* Deploy link: https://orangechenka.web.app
 
 
 ## RESTful endpoints
