@@ -14,25 +14,61 @@ module.exports = (sequelize, DataTypes) => {
     }
   };
   Product.init({
-    name: {
-      allowNull: false,
+    name:{
       type: DataTypes.STRING,
+      validate: {
+        notEmpty: {
+          args: true,
+          msg: `Name is required!`,
+        },
+      },
     },
     image_url: {
-      allowNull: false,
       type: DataTypes.STRING,
+      validate: {
+        notEmpty: {
+          args: true,
+          msg: `Image Url is required!`,
+        },
+      },
     },
     price: {
-      allowNull: false,
       type: DataTypes.INTEGER,
+      validate: {
+        notEmpty: {
+          args: true,
+          msg: `Price is required!`,
+        },
+        min: {
+          args: [0],
+          msg: 'Price may not set less than 0'
+        }
+      },
     },
     stock: {
-      allowNull: false,
       type: DataTypes.INTEGER,
+      validate: {
+        notEmpty: {
+          args: true,
+          msg: `Stock is required!`,
+        },
+        min: {
+          args: [0],
+          msg: 'Stock may not set less than 0'
+        }
+      },
     },
+    category: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'Product',
+    hooks: {
+      beforeCreate(product) {
+        if (!product.category) {
+          product.category = 'Unknown'
+        }
+      }
+    }
   });
   return Product;
 };

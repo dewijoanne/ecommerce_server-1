@@ -1,57 +1,69 @@
-const {jwtSign, jwtVerify} = require('../helpers/jwt')
-const { User, Product } = require('../models')
+const {verifyToken} = require('../helpers/jwt.js')
+const {Product, User, Banner} = require('../models')
 
-function authentication ( req, res, next ) {
+
+const authentication = async (req, res, next) => {
+    const {access_token} = req.headers
+    
     try {
-        // console.log(req.headers.access_token,"req.headers.access_token")
-        req.userData = jwtVerify(req.headers.access_token)
+        
+        const userData = verifyToken(access_token)
+        
+        let user = await User.findOne({
+            where: {
+                email: userData.email
+            }
+        })
 
-        User.findByPk(req.userData.id)
-        .then( data => {
-            // console.log("masuk then")
+        if (user && user.role == 'Admin') {
+            req.userData = userData
+            req.userData.role = user.role
+            
             next()
-        })
-        .catch( err => {
-            // console.log("masuk catch")
-            return res.status(404).json({message: "user no longer exist"})
-        })
-    }catch {
-        return res.status(401).json({message: "wrong access token"})
+        } else {
+            throw {msg: "User not authenticated", statusCode: 401}
+        }
+
+    } catch(err) {
+        return next(err)
     }
 }
 
-function authorizationAdmin ( req, res, next ) {
-    const userId = req.userData.id
-    User.findByPk(userId)
-    .then( data => {
-        if( data ){
-            if (!data) {
-                throw {
-                    name: "customErr",
-                    message: "no user found",
-                    status : 401,
-                }
-            } else if( data.role != "admin" ){
-                throw {
-                    name: "customErr",
-                    message: "access only for admin",
-                    status : 401,
-                }
-            } else {
+
+const authorizationProduct = async (req, res, next) => {
+    
+    const {id} = req.params
+
+    try {
+        const product = await Product.findByPk(id) 
+
+            if(product && req.userData.role == 'Admin') {
                 next()
+            } else {
+                throw  {msg: "forbidden access", statusCode: 403}
             }
-        } else {
-            throw {
-                name: "customErr",
-                message: "not authorized",
-                status : 401,
-            }
-        }
-    })
-    .catch( err => {
-        next(err)
-    })
+
+    } catch(err) {
+        return next(err) 
+    }
 }
 
+const authorizationBanner = async (req, res, next) => {
+    
+    const {id} = req.params
 
-module.exports = { authentication , authorizationAdmin }
+    try {
+        const banner = await Banner.findByPk(id) 
+
+            if(banner && req.userData.role == 'Admin') {
+                next()
+            } else {
+                throw  {msg: "forbidden access", statusCode: 403}
+            }
+
+    } catch(err) {
+        return next(err) 
+    }
+}
+
+module.exports = {authentication, authorizationProduct, authorizationBanner}

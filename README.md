@@ -11,7 +11,7 @@ It has:
     - Json Web Token, 
     - Bcrypt
 * JSON Formated Response
-* Documentation: https://documenter.getpostman.com/view/5729395/TVep8TLU
+* Documentation: https://documenter.getpostman.com/view/5729395/TVes7SC7
 * Deploy link: https://ecommerce-chocochenka.web.app
 
 
@@ -19,71 +19,146 @@ It has:
 
 ## Users Routes
 
-### POST /login
-> Login User
+### POST /register
 
+> Register
 _Request Header_
 ```
 no need
 ```
 
 _Request Body_
-```
+```json
 {
-  "email": "<email to get login>",
-  "password": "<password to get login>"
+    "email": "<email to get insert into>",
+    "password": "<password to get insert into>"
+}
+```
+
+_Response (201)_
+```json
+{
+    "email": "admin@mail.com",
+    "message": "Successfully registered"
+}
+```
+_Response (401 - Bad Request)_
+```json
+{
+    "errors": [
+        "Invalid email format",
+        "Email is required!",
+        "Email has been taken!",
+        "Password is required!",
+        "password must 6-15 characters"
+    ]
+}
+```
+
+_Response (500 - Internal Server Error)_
+```json
+{
+    "message": "Internal Server Error"
+}
+```
+
+### POST /login
+
+> Login
+_Request Header_
+```
+no need
+```
+
+_Request Body_
+```json
+{
+    "email": "<email to get insert into>",
+    "password": "<password to get insert into>"
 }
 ```
 
 _Response (200)_
-```
+```json
 {
-    "access_token": "<access_token JWT>",
-    "id": "<user id>"
+    "access_token": "<your access token>"
 }
 ```
-
 _Response (400 - Bad Request)_
-```
+```json
 {
-  "message": "email cannot be empty" ||
-              "password cannot be empty"
+    "errors": [
+        "Register first!",
+         "Invalid username or password!"
+    ]
 }
 ```
 
-_Response (404 - Not Found)_
-```
+_Response (500 - Internal Server Error)_
+```json
 {
-    "message": "data not found"
-}
-```
-
-### Global endpoints
-
-_Response (401 - Unauthorized)_
-```
-{
-  "message": "Not authroized to do the actions"
-}
-```
-
-_Response (500 - Error)_
-```
-{
-  "message": "internal server error"
+    "message": "Internal Server Error"
 }
 ```
 
 
 ## Products Routes
 
-### GET /products
-> Get all products 
+### POST /products
 
+> Create new products
 _Request Header_
-```
+```json
 {
-    "access_token": "<access_token>"
+  "access_token": "<user access token>"
+}
+```
+
+_Request Body_
+```json
+{
+  "name": "<name to get insert into>",
+  "image_url": "<image_url to get insert into>",
+  "price": "<price to get insert into>",
+  "stock": "<stock to get insert into>"
+}
+```
+
+_Response (201 - Created)_
+```json
+{
+    "id": 3,
+    "name": "PS5",
+    "image_url": "https://www.citypng.com/public/uploads/preview/-11591925787cggjhepdvq.png",
+    "price": 1000000,
+    "stock": 30,
+    "category": "Game Console",
+    "updatedAt": "2020-11-19T04:06:13.676Z",
+    "createdAt": "2020-11-19T04:06:13.676Z"
+}
+```
+
+_Response (401 - Not Authenticated)_
+```json
+{
+  "message": "User not authenticated"
+}
+```
+
+_Response (400 - Bad Request)_
+```json
+{
+  "message": "Name is required!, Image Url is required!, Price may not set less than 0, Stock may not set less than 0"
+}
+```
+
+### GET /products
+
+> Show all products
+_Request Header_
+```json
+{
+  "access_token": "<user access token>"
 }
 ```
 
@@ -93,50 +168,49 @@ no need
 ```
 
 _Response (200)_
-```
-[
-    {
-        "id": "<show id data>",
-        "name": "<show name data>",
-        "image_url": "<show image_url data>",
-        "price": "<show price data>",
-        "stock": "<show stock data>",
-        "createdAt": "<show createdAt data>",
-        "updatedAt": "<show updatedAt data>"
-    },
-    {
-        "id": "<show id data>",
-        "name": "<show name data>",
-        "image_url": "<show image_url data>",
-        "price": "<show price data>",
-        "stock": "<show stock data>",
-        "createdAt": "<show createdAt data>",
-        "updatedAt": "<show updatedAt data>"
-    }
-]
-```
-
-_Response (404 - Not Found)_
-```
+```json
 {
-  "message": "data not found"
+    "products": [
+        {
+            "id": 3,
+            "name": "PS5",
+            "image_url": "https://www.citypng.com/public/uploads/preview/-11591925787cggjhepdvq.png",
+            "price": "Rp 1,000,000",
+            "stock": 30,
+            "category": "Game Console",
+            "createdAt": "2020-11-19T04:06:13.676Z",
+            "updatedAt": "2020-11-19T04:06:13.676Z"
+        }
+    ]
 }
 ```
 
+_Response (401 - Not Authenticated)_
+```json
+{
+  "message": "User not authenticated"
+}
+```
+
+_Response (500 - Internal server error)_
+```json
+{
+  "message": "Internal Server Error"
+}
+```
 
 ### GET /products/:id
-> Get product base on selected id
 
+> Get product by ID
 _Request Header_
-```
+```json
 {
-    "access_token": "<access_token>"
+  "access_token": "<user access token>"
 }
 ```
-
-_Request Parameter_
+_Request Params_
 ```
-  "id": "<selected product id>"
+<product ID>
 ```
 
 _Request Body_
@@ -145,135 +219,173 @@ no need
 ```
 
 _Response (200)_
-```
+```json
 {
-    "id": "<show id by requested id>",
-    "name": "<show name by requested id>",
-    "image_url": "<show image_url by requested id>",
-    "price": "<show price by requested id>",
-    "stock": "<show stock by requested id>",
-    "createdAt": "<show createdAt by requested id>",
-    "updatedAt": "<show updatedAt by requested id>"
+    "id": 3,
+    "name": "PS5",
+    "image_url": "https://www.citypng.com/public/uploads/preview/-11591925787cggjhepdvq.png",
+    "price": 1000000,
+    "stock": 30,
+    "category": "Game Console",
+    "createdAt": "2020-11-19T04:06:13.676Z",
+    "updatedAt": "2020-11-19T04:06:13.676Z"
+}
+```
+
+_Response (401 - Not Authenticated)_
+```json
+{
+  "message": "User not authenticated"
 }
 ```
 
 _Response (404 - Not Found)_
-```
+```json
 {
-  "message": "data not found"
+  "message": "Null"
 }
 ```
-
-### POST /products
-> Create new product
-
-_Request Header_
-```
-{
-    "access_token": "<access_token>"
-}
-```
-
-_Request Body_
-```
-{
-    "name": "<name to get insert into>",
-    "image_url": "<image_url to get insert into>",
-    "price": "<price get insert into>",
-    "stock": "<stock get insert into>",
-}
-```
-
-_Response (201)_
-```
-{
-    "id": <given id by system>,
-    "name": "<show name data>",
-    "image_url": "<show image_url data>",
-    "price": "<show price data>",
-    "stock": "<show stock data>",
-    "createdAt": "<show createdAt data>",
-    "updatedAt": "<show updatedAt data>"
-}
-```
-
-_Response (400 - Bad Request)_
-```
-{
-  "message" : "name cannot be empty" || 
-              "image_url cannot be empty" || 
-              "price cannot be empty" || 
-              "stock cannot be empty" || 
-              "Price and Stock must be more then 0" || 
-              "Price and Stock must be a Number"
-}
-```
-
 
 ### PUT /products/:id
-> Update existing product base on selected id
 
+> Update product by ID
 _Request Header_
-```
+```json
 {
-    "access_token": "<access_token JWT>"
+  "access_token": "<user access token>"
 }
 ```
 
-_Request Parameter_
+_Request Params_
 ```
-  "id": "<selected product id>"
+<product ID>
 ```
 
 _Request Body_
-```
+```json
 {
-    "name": "<name to get update into>",
-    "image_url": "<image_url to get update into>",
-    "price": "<price to get update into>",
-    "stock": "<price to get update into>",
+    "id": 3,
+    "name": "PS5 Baru",
+    "image_url": "https://www.citypng.com/public/uploads/preview/-11591925787cggjhepdvq.png",
+    "price": 1000000,
+    "stock": 30,
+    "category": "Game Console",
+    "createdAt": "2020-11-19T04:06:13.676Z",
+    "updatedAt": "2020-11-19T04:06:13.676Z"
 }
 ```
 
 _Response (200)_
-```
+```json
 {
-    "id": "<id to get update into>",
-    "name": "<name to get update into>",
-    "image_url": "<image_url to get update into>",
-    "price": "<price to get update into>",
-    "stock": "<stock to get update into>",
-    "createdAt": "<createdAt to get update into>",
-    "updatedAt": "<updatedAt to get update into>"
+    "msg": "Successfully updated!"
 }
 ```
 
-_Response (400 - Bad Request)_
-```
+_Response (400 - Bad request)_
+```json
 {
-  "message" : "name cannot be empty" || 
-              "image_url cannot be empty" || 
-              "Price cannot be empty" || 
-              "Stock cannot be empty" || 
-              "Price and Stock must be more then 0" || 
-              "Price and Stock must be a Number"
+  "message":  "Name is required!, Image Url is required!, Price may not set less than 0, Stock may not set less than 0"
 }
 ```
 
-_Response (404 - Not Found)_
-```
+_Response (500 - Internal Server Error)_
+```json
 {
-  "message": "data not found"
+  "message": "Internal Server Error"
 }
 ```
 
 ### DELETE /products/:id
-> Delete product base on selected id
 
+> Delete products by ID
 _Request Header_
-```
+```json
 {
-    "access_token": "<access_token>"
+  "access_token": "<user access token>"
+}
+```
+
+_Request Params_
+```
+<product ID>
+```
+
+_Request Body_
+```
+no need
+```
+
+_Response (200)_
+```json
+
+{
+    "msg": "Successfully deleted!"
+}
+
+```
+
+_Response (500 - Internal Server Error)_
+```json
+{
+  "message": "Internal Server Error"
+}
+```
+
+## Banners Routes
+
+### POST /banners
+
+> Create new banners
+_Request Header_
+```json
+{
+  "access_token": "<user access token>"
+}
+```
+
+_Request Body_
+```json
+{
+  "title": "<name to get insert into>",
+  "image_url": "<image_url to get insert into>",
+  "status": "<price to get insert into>",
+}
+```
+
+_Response (201 - Created)_
+```json
+{
+    "id": 2,
+    "title": "PS5",
+    "status": "on",
+    "image_url": "https://www.citypng.com/public/uploads/preview/-11591925787cggjhepdvq.png",
+    "updatedAt": "2020-11-19T04:10:12.232Z",
+    "createdAt": "2020-11-19T04:10:12.232Z"
+}
+```
+
+_Response (401 - Not Authenticated)_
+```json
+{
+  "message": "User not authenticated"
+}
+```
+
+_Response (400 - Bad Request)_
+```json
+{
+  "message": "Title is required!, Image Url is required!, Status is required!"
+}
+```
+
+### GET /banners
+
+> Show all banners
+_Request Header_
+```json
+{
+  "access_token": "<user access token>"
 }
 ```
 
@@ -283,30 +395,155 @@ no need
 ```
 
 _Response (200)_
+```json
+[
+    {
+        "id": 2,
+        "title": "PS5",
+        "status": "on",
+        "image_url": "https://www.citypng.com/public/uploads/preview/-11591925787cggjhepdvq.png",
+        "createdAt": "2020-11-19T04:10:12.232Z",
+        "updatedAt": "2020-11-19T04:10:12.232Z"
+    }
+]
 ```
+
+_Response (401 - Not Authenticated)_
+```json
 {
-    "id": "<contain id that deleted>",
-    "name": "<contain name that deleted>",
-    "image_url": "<contain image_url that deleted>",
-    "price": "<contain price that deleted>",
-    "stock": "<contain stock that deleted>",
-    "createdAt": "<contain createdAt that deleted>",
-    "updatedAt": "<contain updatedAt that deleted>"
+  "message": "User not authenticated"
 }
 ```
 
-_Response (400 - Bad Request)_
-```
+_Response (500 - Internal server error)_
+```json
 {
-  "message": "please fill all fields"
+  "message": "Internal Server Error"
+}
+```
+
+### GET /banners/:id
+
+> Get banner by ID
+_Request Header_
+```json
+{
+  "access_token": "<user access token>"
+}
+```
+_Request Params_
+```
+<banner ID>
+```
+
+_Request Body_
+```
+no need
+```
+
+_Response (200)_
+```json
+{
+    "id": 2,
+    "title": "PS5",
+    "status": "on",
+    "image_url": "https://www.citypng.com/public/uploads/preview/-11591925787cggjhepdvq.png",
+    "createdAt": "2020-11-19T04:10:12.232Z",
+    "updatedAt": "2020-11-19T04:10:12.232Z"
+}
+```
+
+_Response (401 - Not Authenticated)_
+```json
+{
+  "message": "User not authenticated"
 }
 ```
 
 _Response (404 - Not Found)_
-```
+```json
 {
-  "message": "data not found"
+  "message": "Null"
 }
 ```
 
+### PUT /banners/:id
 
+> Update banner by ID
+_Request Header_
+```json
+{
+  "access_token": "<user access token>"
+}
+```
+
+_Request Params_
+```
+<banner ID>
+```
+
+_Request Body_
+```json
+{
+    "title": "PS5 baru",
+    "image_url": "https://www.citypng.com/public/uploads/preview/-11591925787cggjhepdvq.png",
+    "status": "off"
+}
+```
+
+_Response (200)_
+```json
+{
+    "msg": "Successfully updated!"
+}
+```
+
+_Response (400 - Bad request)_
+```json
+{
+  "message":  "Title is required!, Image Url is required!, Status is required!"
+}
+```
+
+_Response (500 - Internal Server Error)_
+```json
+{
+  "message": "Internal Server Error"
+}
+```
+
+### DELETE /banners/:id
+
+> Delete banners by ID
+_Request Header_
+```json
+{
+  "access_token": "<user access token>"
+}
+```
+
+_Request Params_
+```
+<banner ID>
+```
+
+_Request Body_
+```
+no need
+```
+
+_Response (200)_
+```json
+
+{
+    "msg": "Successfully deleted!"
+}
+
+```
+
+_Response (500 - Internal Server Error)_
+```json
+{
+  "message": "Internal Server Error"
+}
+```

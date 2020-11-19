@@ -1,30 +1,28 @@
-module.exports = (err, req, res, next) => {
-  let errMsg = ""
-  let errStatus = 0
-  switch (err.name) {
-      case "SequelizeUniqueConstraintError" :
-          errMsg = err.errors[0].message
-          errStatus = 400
-          break;
-          
-      case "customErr" :
-          errMsg = err.message
-          errStatus = err.status
-          break;
+function errHandler (err,req,res,next) {
+    
 
-      case "SequelizeValidationError" :
-          let errResult = [] 
-          err.errors.forEach(error => {
-              errResult.push(error.message)
-          });
-          errMsg = errResult
-          errStatus = 400
-          break;
+    let statusCode
+    let errors = []
 
-      case "Internal Server Error" :
-          errMsg = err.name
-          errStatus = 500
-          break;
-  }
-  res.status(errStatus).json({message: errMsg})
+    switch(err.name) {
+        case 'JsonWebTokenError' :
+            errors.push("User not authenticated")
+            statusCode = 401
+            break
+        case 'SequelizeUniqueConstraintError': 
+        case 'SequelizeValidationError':
+            err.errors.forEach(error => {
+                errors.push(error.message)
+            });
+            statusCode = 401
+            break
+        default:
+            errors.push(err.msg)
+            statusCode = err.statusCode || 500
+    }
+   
+
+    res.status(statusCode).json({errors})
 }
+
+module.exports = errHandler

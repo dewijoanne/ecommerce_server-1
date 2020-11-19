@@ -1,587 +1,383 @@
-const request = require('supertest')
-const app = require('../app.js')
-const { User, sequelize, Product } = require('../models')
-const { jwtSign , jwtVerify} = require('../helpers/jwt')
-const { queryInterface , Sequelize } = sequelize 
+const request = require('supertest');
+const app = require('../app');
+const {sequelize,User} = require('../models')
+const {queryInterface} = sequelize
+const jwt = require('jsonwebtoken')
 
-let user1 = { 
-    email: "admin@mail.com",
-    password:"1234",
-    role: "admin"
-}
-
-let user2 = {
-    email: "manager@mail.com",
-    password:"1234",
-    role: "manager"
-}
-
-let access_token = ""
-let manager_token = ""
-let wrong_token = ""
-
-let product1 = {
+const userDummy = {email: 'john@mail.com', password: '123456', role:'Admin'}
+const productDummy = {
     name: 'PS5',
-    image_url:
-      'https://www.citypng.com/public/uploads/preview/-11591925787cggjhepdvq.png',
-    price: 2000000,
-    stock: 10,
-}
+    image_url: 'https://www.citypng.com/public/uploads/preview/-11591925787cggjhepdvq.png',
+    price: 1000000,
+    category: 'Game Console',
+    stock: 30
+    }
+const editedDummy = {
+    name: 'PS5 lain',
+    image_url: 'https://www.citypng.com/public/uploads/preview/-11591925787cggjhepdvq.png',
+    price: 15000,
+    category: 'Game Console',
+    stock: 10
+    }
+let access_token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJqb2huQG1haWwuY29tIiwiaWF0IjoxNjAwNTA2ODU3fQ.hr6VB88EZ53xtsPTDXKqdE47F2dMm-xNTKDb9V_KpXo'
 
 
-let resultProduct = ""
-
-
-beforeAll( done =>{
-    
-    User.create(user1)
-    .then( adminData => {
-        access_token = jwtSign({
-            id : adminData.dataValues.id,
-            email: adminData.dataValues.email
-        })
-        return User.create(user2)
-    })
-    .then( notAdminData => {
-        manager_token = jwtSign({
-            id : notAdminData.dataValues.id,
-            email: notAdminData.dataValues.email
-        })
-        done()
-    })
-    .catch( err => {
-        done(err)
-    })
-
-    
-})
-
-afterAll( done => {
-    queryInterface.dropTable('Products')
-    .then( data => {
-        return queryInterface.dropTable('Users')
-    })
-    .then( data =>{
-        return queryInterface.createTable('Products', {
-            id: {
-              allowNull: false,
-              autoIncrement: true,
-              primaryKey: true,
-              type: Sequelize.INTEGER
-            },
-            name: {
-              allowNull: false,
-              type: Sequelize.STRING
-            },
-            image_url: {
-              allowNull: false,
-              type: Sequelize.STRING
-            },
-            price: {
-              allowNull: false,
-              type: Sequelize.INTEGER
-            },
-            stock: {
-              allowNull: false,
-              type: Sequelize.INTEGER
-            },
-            createdAt: {
-              allowNull: false,
-              type: Sequelize.DATE
-            },
-            updatedAt: {
-              allowNull: false,
-              type: Sequelize.DATE
-            }
-          });
-    })
-    .then( data => {
-        return queryInterface.createTable('Users', {
-            id: {
-              allowNull: false,
-              autoIncrement: true,
-              primaryKey: true,
-              type: Sequelize.INTEGER
-            },
-            email: {
-              allowNull: false,
-              type: Sequelize.STRING
-            },
-            password: {
-              allowNull: false,
-              type: Sequelize.STRING
-            },
-            role: {
-              allowNull: false,
-              type: Sequelize.STRING
-            },
-            createdAt: {
-              allowNull: false,
-              type: Sequelize.DATE
-            },
-            updatedAt: {
-              allowNull: false,
-              type: Sequelize.DATE
-            }
-          });
-    })
-    .then ( data => {
-        done()
-    })
-    .catch ( err =>{
-        done(err)
-    })
-})
-
-describe("Product Routes", () => {
-
-    describe("Add Product Test", () => {
-        test("201 success add product - return product details", (done) => {
-            return request(app)
-                .post('/products')
-                .send(product1)
-                .set("Accept", "application/json")
-                .set('access_token', access_token)
-                .then( response => {
-                    const { body, status } = response
-                    
-                    resultProduct = body
-                    expect(status).toBe(201)
-                    expect(body).toHaveProperty("id")
-                    expect(body).toHaveProperty("name")
-                    expect(body).toHaveProperty("image_url")
-                    expect(body).toHaveProperty("price")
-                    expect(body).toHaveProperty("stock")
-                    expect(body).toHaveProperty("createdAt")
-                    expect(body).toHaveProperty("updatedAt")
-                    done()
-                })
-                .catch( (err) => {
-                    done(err)
-                });
-        })
-    
-        test("400 failed add product - return message : Price and Stock must be a Number", (done) => {
-            return request(app)
-                .post('/products')
-                .send(product2)
-                .set("Accept", "application/json")
-                .set('access_token', access_token)
-                .then( response => {
-                    const { body, status } = response
-    
-                    expect(status).toBe(400)
-                    expect(body).toHaveProperty("message","Price and Stock must be a Number")
-                    done()
-                })
-                .catch( (err) => {
-                    done(err)
-                });
-        })
-    
-        test("400 failed add product - return message : Price and Stock must be more then 0", (done) => {
-            return request(app)
-                .post('/products')
-                .send(product3)
-                .set("Accept", "application/json")
-                .set('access_token', access_token)
-                .then( response => {
-                    const { body, status } = response
-    
-                    expect(status).toBe(400)
-                    expect(body).toHaveProperty("message","Price and Stock must be more then 0")
-                    done()
-                })
-                .catch( (err) => {
-                    done(err)
-                });
-        })
-    
-        test("400 failed add product - return message : name cannot be empty", (done) => {
-            return request(app)
-                .post('/products')
-                .send(product4)
-                .set("Accept", "application/json")
-                .set('access_token', access_token)
-                .then( response => {
-                    const { body, status } = response
-    
-                    expect(status).toBe(400)
-                    expect(body).toHaveProperty("message","name cannot be empty")
-                    done()
-                })
-                .catch( (err) => {
-                    done(err)
-                });
-        })
-    
-        test("400 failed add product - return message : image_url cannot be empty", (done) => {
-            return request(app)
-                .post('/products')
-                .send(product5)
-                .set("Accept", "application/json")
-                .set('access_token', access_token)
-                .then( response => {
-                    const { body, status } = response
-    
-                    expect(status).toBe(400)
-                    expect(body).toHaveProperty("message","image_url cannot be empty")
-                    done()
-                })
-                .catch( (err) => {
-                    done(err)
-                });
-        })
-    
-        test("400 failed add product - return message : price cannot be empty", (done) => {
-            return request(app)
-                .post('/products')
-                .send(product6)
-                .set("Accept", "application/json")
-                .set('access_token', access_token)
-                .then( response => {
-                    const { body, status } = response
-    
-                    expect(status).toBe(400)
-                    expect(body).toHaveProperty("message","price cannot be empty")
-                    done()
-                })
-                .catch( (err) => {
-                    done(err)
-                });
-        })
-    
-        test("400 failed add product - return message : stock cannot be empty", (done) => {
-            return request(app)
-                .post('/products')
-                .send(product7)
-                .set("Accept", "application/json")
-                .set('access_token', access_token)
-                .then( response => {
-                    const { body, status } = response
-    
-                    expect(status).toBe(400)
-                    expect(body).toHaveProperty("message","stock cannot be empty")
-                    done()
-                })
-                .catch( (err) => {
-                    done(err)
-                });
-        })
-    })
-
-    
-    test("401 Unauthorized", (done) => {
-        return request(app)
-            .delete(`/products/${resultProduct.id}`)
-            .set("Accept", "application/json")
-            .set('access_token', manager_token)
-            .then( response => {
-                const { body, status } = response
-
-                expect(status).toBe(401)
-                expect(body).toHaveProperty("message" , "access only for admin")
-                done()
-            })
-            .catch( (err) => {
-                done(err)
+describe.only('Get All Products >> GET /products', function() {
+    it('return array of find All object and status 200', function(done) {
+    request(app)
+        .get('/products')
+        .set('access_token', access_token)
+        .set('Accept', 'application/json')
+        .then(response => {
+            const {body,status} = response
+            expect(status).toBe(200)
+            body.products.forEach(obj => {
+                console.log('ini di body',obj);
+                expect(obj).toHaveProperty('id', expect.any(Number))
+                expect(obj).toHaveProperty('name', expect.any(String))
+                expect(obj).toHaveProperty('image_url', expect.any(String))
+                expect(obj).toHaveProperty('category', expect.any(String))
+                expect(obj).toHaveProperty('price', expect.any(String))
+                expect(obj).toHaveProperty('stock', expect.any(Number))
             });
-    })
-
-    test("401 Unauthorized", (done) => {
-        return request(app)
-            .delete(`/products/${resultProduct.id}`)
-            .set("Accept", "application/json")
-            .set('access_token', manager_token)
-            .then( response => {
-                const { body, status } = response
-
-                expect(status).toBe(401)
-                expect(body).toHaveProperty("message" , "access only for admin")
-                done()
+            done()
             })
-            .catch( (err) => {
-                done(err)
-            });
-    })
+    });    
+});
 
-    test("401 Not Login", (done) => {
-        return request(app)
-            .get('/products')
-            .set("Accept", "application/json")
-            .then( response => {
-                const { body, status } = response
+//CREATE PRODUCT
 
-                expect(status).toBe(401)
-                expect(body).toHaveProperty("message" , "wrong access token")
-                done()
+describe('Products Create >> POST /products', function() {
+    it('return array of find All object and status 200', function(done) {
+    request(app)
+        .post('/products')
+        .send(productDummy)
+        .set('access_token', access_token)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .then(response => {
+            const {body,status} = response
+            expect(status).toBe(201)
+            expect(body).toHaveProperty('name', expect.any(String))
+            expect(body).toHaveProperty('image_url', expect.any(String))
+            expect(body).toHaveProperty('category', expect.any(String))
+            expect(body).toHaveProperty('price', expect.any(Number))
+            expect(body).toHaveProperty('stock', expect.any(Number))
+            done()
             })
-            .catch( (err) => {
-                done(err)
-            });
-    })
+    });    
+});
 
-    describe("Get Product Test", () => {
-        it("200 success get all products - return all products", (done) => {
-            let getAll = []
-            Product.findAll()
-            .then( data => { 
-                getAll = data
+describe.only('Create products without access_token >> POST /products', function() {
+    it('failed create product return errors and status 401', function(done) {
+    request(app)
+        .post('/products')
+        .send(productDummy)
+        .set('access_token', '')
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .then(response => {
+            const {body,status} = response
+            let errors = body.errors[0]
+            expect(status).toBe(401)
+            expect(errors).toMatch('User not authenticated')
+            done()
+        })
+    });    
+});
+
+describe('Create products with wrong access_token >> POST /products', function() {
+    it('failed create product return errors and status 401', function(done) {
+    request(app)
+        .post('/products')
+        .send(productDummy)
+        .set('access_token', 'tokensiapanichhh')
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .then(response => {
+            const {body,status} = response
+            let errors = body.errors[0]
+            expect(status).toBe(401)
+            expect(errors).toMatch('User not authenticated')
+            done()
+        })
+    });    
+});
+
+describe('Create products with empty values >> POST /products', function() {
+    it('failed create product return errors and status 401', function(done) {
+    request(app)
+        .post('/products')
+        .send( {name: '',image_url: '',})
+        .set('access_token', access_token)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .then(response => {
+            const {body,status} = response
+            expect(status).toBe(401)
+            expect(body).toHaveProperty(Object.keys(response.body));
+            done()
+        })
+    });    
+});
+
+describe('Create products with stocks less than 0 >> POST /products', function() {
+    it('failed create product return errors and status 401', function(done) {
+    request(app)
+        .post('/products')
+        .send({
+            name: 'PS5',
+            image_url: 'https://www.citypng.com/public/uploads/preview/-11591925787cggjhepdvq.png',
+            price: 1000000,
+            category: 'Game Console',
+            stock: 30
             })
+        .set('access_token', access_token)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .then(response => {
+            const {body,status} = response
+            expect(status).toBe(401)
+            expect(body).toHaveProperty(Object.keys(response.body));
+            done()
+        })
+    });    
+});
 
-    
-            return request(app)
-                .get('/products')
-                .set("Accept", "application/json")
-                .set('access_token', access_token)
-                .then( response => {
-                    const { body, status } = response
-                    
-                    expect(status).toBe(200)
-                    expect(body).toEqual(expect.any(Array))
+describe('Create products with prices less than 0 >> POST /products', function() {
+    it('failed create product return errors and status 401', function(done) {
+    request(app)
+        .post('/products')
+        .send({
+            name: 'PS5',
+            image_url: 'https://www.citypng.com/public/uploads/preview/-11591925787cggjhepdvq.png',
+            price: 1000000,
+            category: 'Game Console',
+            stock: 30
+            })
+        .set('access_token', access_token)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .then(response => {
+            const {body,status} = response
+            expect(status).toBe(401)
+            expect(body).toHaveProperty(Object.keys(response.body));
+            done()
+        })
+    });    
+});
 
-                    done()
-                })
-                .catch( (err) => {
-                    done(err)
-                });
-        })
-    })
 
-    describe("Get selected Product Test", () => {
-        test("200 success get selected product - return all products", (done) => {
-            return request(app)
-                .get(`/products/${resultProduct.id}`)
-                .set("Accept", "application/json")
-                .set('access_token', access_token)
-                .then( response => {
-                    const { body, status } = response
-    
-                    expect(status).toBe(200)
-                    expect(body).toHaveProperty("id")
-                    expect(body).toHaveProperty("name")
-                    expect(body).toHaveProperty("image_url")
-                    expect(body).toHaveProperty("price")
-                    expect(body).toHaveProperty("stock")
-                    expect(body).toHaveProperty("createdAt")
-                    expect(body).toHaveProperty("updatedAt")
-                    done()
-                })
-                .catch( (err) => {
-                    done(err)
-                });
-        })
+describe('Create products with wrong data types >> POST /products', function() {
+    it('failed create product return errors and status 500', function(done) {
+    request(app)
+        .post('/products')
+        .send({
+            name: 123123,
+            image_url: 33333,
+            price: 'asdjnajdas',
+            stock: 'bashdbsh'
+            })
+        .set('access_token', access_token)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .then(response => {
+            const {body,status} = response
+            expect(status).toBe(500)
+            expect(body).toHaveProperty(Object.keys(response.body));
+            done()
+            })
+    });    
+});
 
-        test("404 failed get selected product - return message : data not found", (done) => {
-            return request(app)
-                .get(`/products/1000`)
-                .set("Accept", "application/json")
-                .set('access_token', access_token)
-                .then( response => {
-                    const { body, status } = response
-    
-                    expect(status).toBe(404)
-                    expect(body).toHaveProperty("message","data not found")
-                    done()
-                })
-                .catch( (err) => {
-                    done(err)
-                });
-        })
-    })
+//UPDATE PRODUCT
+describe('Edit Product by Id >> PUT /products', function() {
+    it('return edited value and status 200', function(done) {
+    request(app)
+        .put('/products/4')
+        .set('access_token', access_token)
+        .set('Accept', 'application/json')
+        .send(editedDummy)
+        .expect('Content-Type', /json/)
+        .then(response => {
+            const {body,status} = response
+            expect(status).toBe(200)
+            expect(body[0]).toBe(1);
+            done()
+            })
+    });    
+});
 
-    describe("Update selected Product Test", () => {
-        test("201 success update product - return update product details", (done) => {
-            return request(app)
-                .put(`/products/${resultProduct.id}`)
-                .send(product1update)
-                .set("Accept", "application/json")
-                .set('access_token', access_token)
-                .then( response => {
-                    const { body, status } = response
-    
-                    expect(status).toBe(200)
-                    expect(body).toHaveProperty("id")
-                    expect(body).toHaveProperty("name")
-                    expect(body).toHaveProperty("image_url")
-                    expect(body).toHaveProperty("price")
-                    expect(body).toHaveProperty("stock")
-                    expect(body).toHaveProperty("createdAt")
-                    expect(body).toHaveProperty("updatedAt")
-                    done()
-                })
-                .catch( (err) => {
-                    done(err)
-                });
+describe('Update products without access_token >> PUT /products', function() {
+    it('failed update product return errors and status 401', function(done) {
+    request(app)
+        .put('/products/4')
+        .send(editedDummy)
+        .set('access_token', '')
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .then(response => {
+            const {body,status} = response
+            let errors = body.errors[0]
+            expect(status).toBe(401)
+            expect(errors).toMatch('User not authenticated')
+            done()
         })
-    
-        test("400 failed add product - return message : Price and Stock must be a Number", (done) => {
-            return request(app)
-                .put(`/products/${resultProduct.id}`)
-                .send(product2)
-                .set("Accept", "application/json")
-                .set('access_token', access_token)
-                .then( response => {
-                    const { body, status } = response
-    
-                    expect(status).toBe(400)
-                    expect(body).toHaveProperty("message","Price and Stock must be a Number")
-                    done()
-                })
-                .catch( (err) => {
-                    done(err)
-                });
-        })
-    
-        test("400 failed add product - return message : Price and Stock must be more then 0", (done) => {
-            return request(app)
-                .put(`/products/${resultProduct.id}`)
-                .send(product3)
-                .set("Accept", "application/json")
-                .set('access_token', access_token)
-                .then( response => {
-                    const { body, status } = response
-    
-                    expect(status).toBe(400)
-                    expect(body).toHaveProperty("message","Price and Stock must be more then 0")
-                    done()
-                })
-                .catch( (err) => {
-                    done(err)
-                });
-        })
-    
-        test("400 failed add product - return message : name cannot be empty", (done) => {
-            return request(app)
-                .put(`/products/${resultProduct.id}`)
-                .send(product4)
-                .set("Accept", "application/json")
-                .set('access_token', access_token)
-                .then( response => {
-                    const { body, status } = response
-    
-                    expect(status).toBe(400)
-                    expect(body).toHaveProperty("message","name cannot be empty")
-                    done()
-                })
-                .catch( (err) => {
-                    done(err)
-                });
-        })
-    
-        test("400 failed add product - return message : image_url cannot be empty", (done) => {
-            return request(app)
-                .put(`/products/${resultProduct.id}`)
-                .send(product5)
-                .set("Accept", "application/json")
-                .set('access_token', access_token)
-                .then( response => {
-                    const { body, status } = response
-    
-                    expect(status).toBe(400)
-                    expect(body).toHaveProperty("message","image_url cannot be empty")
-                    done()
-                })
-                .catch( (err) => {
-                    done(err)
-                });
-        })
-    
-        test("400 failed add product - return message : price cannot be empty", (done) => {
-            return request(app)
-                .put(`/products/${resultProduct.id}`)
-                .send(product6)
-                .set("Accept", "application/json")
-                .set('access_token', access_token)
-                .then( response => {
-                    const { body, status } = response
-    
-                    expect(status).toBe(400)
-                    expect(body).toHaveProperty("message","price cannot be empty")
-                    done()
-                })
-                .catch( (err) => {
-                    done(err)
-                });
-        })
-    
-        test("400 failed add product - return message : stock cannot be empty", (done) => {
-            return request(app)
-                .put(`/products/${resultProduct.id}`)
-                .send(product7)
-                .set("Accept", "application/json")
-                .set('access_token', access_token)
-                .then( response => {
-                    const { body, status } = response
-    
-                    expect(status).toBe(400)
-                    expect(body).toHaveProperty("message","stock cannot be empty")
-                    done()
-                })
-                .catch( (err) => {
-                    done(err)
-                });
-        })
+    });    
+});
 
-        test("404 failed get selected products - return message : data not found", (done) => {
-            return request(app)
-                .put(`/products/1000`)
-                .send(product1)
-                .set("Accept", "application/json")
-                .set('access_token', access_token)
-                .then( response => {
-                    const { body, status } = response
-    
-                    expect(status).toBe(404)
-                    expect(body).toHaveProperty("message","data not found")
-                    done()
-                })
-                .catch( (err) => {
-                    done(err)
-                });
+describe('Update products with wrong access_token >> PUT /products', function() {
+    it('failed update product return errors and status 401', function(done) {
+    request(app)
+        .put('/products/4')
+        .send(editedDummy)
+        .set('access_token', 'tokensiapanichhh')
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .then(response => {
+            const {body,status} = response
+            let errors = body.errors[0]
+            expect(status).toBe(401)
+            expect(errors).toMatch('User not authenticated')
+            done()
         })
-    })
+    });    
+});
 
-    describe("Delete selected Product Test", () => {
-        test("200 success deleted selected product - return deleted products", (done) => {
-            return request(app)
-                .delete(`/products/${resultProduct.id}`)
-                .set("Accept", "application/json")
-                .set('access_token', access_token)
-                .then( response => {
-                    const { body, status } = response
-    
-                    expect(status).toBe(200)
-                    expect(body).toHaveProperty("id")
-                    expect(body).toHaveProperty("name")
-                    expect(body).toHaveProperty("image_url")
-                    expect(body).toHaveProperty("price")
-                    expect(body).toHaveProperty("stock")
-                    expect(body).toHaveProperty("createdAt")
-                    expect(body).toHaveProperty("updatedAt")
-
-                    done()
-                })
-                .catch( (err) => {
-                    done(err)
-                });
+describe('Update products with empty values >> put /products', function() {
+    it('failed Update product return errors and status 401', function(done) {
+    request(app)
+        .put('/products/4')
+        .send( {name: '',image_url: '',})
+        .set('access_token', access_token)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .then(response => {
+            const {body,status} = response
+            expect(status).toBe(401)
+            expect(body).toHaveProperty(Object.keys(response.body));
+            done()
         })
+    });    
+});
 
-        test("404 failed delete selected product - return message : data not found", (done) => {
-            return request(app)
-                .delete(`/products/1000`)
-                .set("Accept", "application/json")
-                .set('access_token', access_token)
-                .then( response => {
-                    const { body, status } = response
-    
-                    expect(status).toBe(404)
-                    expect(body).toHaveProperty("message","data not found")
-                    done()
-                })
-                .catch( (err) => {
-                    done(err)
-                });
+describe('Update products with stocks less than 0 >> put /products', function() {
+    it('failed Update product return errors and status 401', function(done) {
+    request(app)
+        .put('/products/4')
+        .send({
+            name: 'PS5',
+            image_url: 'https://www.citypng.com/public/uploads/preview/-11591925787cggjhepdvq.png',
+            price: 1000000,
+            category: 'Game Console',
+            stock: 30
+            })
+        .set('access_token', access_token)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .then(response => {
+            const {body,status} = response
+            expect(status).toBe(401)
+            expect(body).toHaveProperty(Object.keys(response.body));
+            done()
         })
-    })
-})
+    });    
+});
+
+describe('Update products with prices less than 0 >> put /products', function() {
+    it('failed Update product return errors and status 401', function(done) {
+    request(app)
+        .put('/products/4')
+        .send({
+            name: 'PS5',
+            image_url: 'https://www.citypng.com/public/uploads/preview/-11591925787cggjhepdvq.png',
+            price: 1000000,
+            category: 'Game Console',
+            stock: 30
+            })
+        .set('access_token', access_token)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .then(response => {
+            const {body,status} = response
+            expect(status).toBe(401)
+            expect(body).toHaveProperty(Object.keys(response.body));
+            done()
+        })
+    });    
+});
+
+
+describe('Update products with wrong data types >> put /products', function() {
+    it('failed Update product return errors and status 500', function(done) {
+    request(app)
+        .put('/products/4')
+        .send({
+            name: 123123,
+            image_url: 33333,
+            price: 'asdjnajdas',
+            stock: 'bashdbsh'
+            })
+        .set('access_token', access_token)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .then(response => {
+            const {body,status} = response
+            expect(status).toBe(500)
+            expect(body).toHaveProperty(Object.keys(response.body));
+            done()
+            })
+    });    
+});
+
+//DELETE PRODUCT
+
+describe('Delete Product by Id >> DELETE /products', function() {
+    it('return deleted value and status 200', function(done) {
+    request(app)
+        .delete('/products/4')
+        .set('access_token', access_token)
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .then(response => {
+            const {body,status} = response
+            expect(status).toBe(200)
+            expect(body).toBe(1);
+            done()
+            })
+    });    
+});
+
+describe('Delete products without access_token >> DELETE /products', function() {
+    it('failed delete product return errors and status 401', function(done) {
+    request(app)
+        .delete('/products/4')
+        .set('access_token', '')
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .then(response => {
+            const {body,status} = response
+            let errors = body.errors[0]
+            expect(status).toBe(401)
+            expect(errors).toMatch('User not authenticated')
+            done()
+        })
+    });    
+});
+
+describe.only('Delete products with wrong access_token >> DELETE /products', function() {
+    it('failed delete product return errors and status 401', function(done) {
+    request(app)
+        .delete('/products/3')
+        .set('access_token', 'tokensiapanichhh')
+        .set('Accept', 'application/json')
+        .expect('Content-Type', /json/)
+        .then(response => {
+            const {body,status} = response
+            let errors = body.errors[0]
+            expect(status).toBe(401)
+            expect(errors).toMatch('User not authenticated')
+            done()
+        })
+    });    
+});

@@ -5,9 +5,9 @@ if (process.env.NODE_ENV !== "production") {
 const express = require('express')
 const app = express()
 
-const mainRoute = require('./routes/mainRoute')
+const routes = require('./routes')
 const cors = require('cors')
-const errHandler = require('./middlewares/errHandler.js')
+const errHandler = require('./middlewares/errHandler')
 
 
 
@@ -15,7 +15,7 @@ app.use(express.json())
 app.use(express.urlencoded({extended:true}))
 app.use(cors())
 
-app.use(mainRoute)
+app.use(routes)
 app.use(errHandler)
 
 module.exports = app
